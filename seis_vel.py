@@ -322,3 +322,29 @@ def plot_expected_arrivals(source_depth, distance, ref_model, phase_list, seisli
       plt.plot(seis_array[:,0],seis_array[:,1])
 
    plt.show()
+
+###############################################################################
+def taup_array_maker(source_depth, dist_range, ref_model, phase_list, seisfile):
+###############################################################################
+   '''
+   Finds ray paths for a certain phase over a range of seismograms. Arranges them
+   in a dictionary.
+
+   Parameters
+   __________
+   
+
+   Returns
+   _______
+
+   '''
+   from obspy.taup import TauPyModel
+   model = TauPyModel(model = ref_model)
+   
+   degree_array = np.arange(dist_range[0],dist_range[1]+1,1)
+   arrival_list = list() 
+
+   for ii in degree_array:
+       arrival = model.get_ray_paths(source_depth,ii)
+       for jj in range(0,len(arrival)):
+          if arrival[jj] in phase_list:
