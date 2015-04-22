@@ -123,6 +123,7 @@ class Mantle_Structure(object):
        Returns .sph file for the Mantle_Structure class. This can be used in the
        inparam_hetero file of AxiSEM.
        '''
+
        file = open(self.name+'.sph','w+')
        file.write(str(self.theta.size*self.radius.size)+'\n')
        for ii in range(0,len(self.radius)):
@@ -142,25 +143,24 @@ class Mantle_Structure(object):
        inparam_hetero file of AxiSEM.
        '''
 
-       radius_2D  = np.tile(self.radius,(self.theta.size,1)).transpose()
-       theta_2D   = np.tile(self.theta,(self.radius.size,1))
+       self.radius_2D  = np.array(np.tile(self.radius,(self.theta.size,1)).transpose())
+       self.theta_2D   = np.tile(self.theta,(self.radius.size,1))
        
-       reshape_radius = radius_2D.reshape(radius_2D.size,1)
-       reshape_theta  = theta_2D.reshape(theta_2D.size,1)
-
-       reshape_vp  = self.vp_2D.reshape(self.vp_2D.size,1)
-       reshape_vs  = self.vs_2D.reshape(self.vp_2D.size,1)
-       reshape_rho = self.rho_2D.reshape(self.vp_2D.size,1)
+       self.reshape_radius = self.radius_2D.reshape(self.radius_2D.size,1)
+       self.reshape_theta  = self.theta_2D.reshape(self.theta_2D.size,1)
+       self.reshape_vp  = self.vp_2D.reshape(self.vp_2D.size,1)
+       self.reshape_vs  = self.vs_2D.reshape(self.vp_2D.size,1)
+       self.reshape_rho = self.rho_2D.reshape(self.vp_2D.size,1)
        
        file = open(self.name+'_2D.sph','w+')
-       file.write(str(reshape_radius.size)+'\n')
+       file.write(str(self.reshape_radius.size)+'\n')
 
-       for ii in range(0,len(reshape_radius)):
-           file.write(str(reshape_radius[ii])+' '+ \
-                   str(reshape_theta[ii])+' '+ \
-                   str(reshape_vp[ii])+' '+ \
-                   str(reshape_vs[ii])+' '+ \
-                   str(reshape_rho[ii])+'\n')
+       for ii in range(0,len(self.reshape_radius)):
+           file.write(str(np.around(self.reshape_radius[ii][0],decimals=3))+' '+ \
+                   str(np.around(self.reshape_theta[ii][0],decimals=3))+' '+ \
+                   str(np.around(self.reshape_vp[ii][0],decimals=3))+' '+ \
+                   str(np.around(self.reshape_vs[ii][0],decimals=3))+' '+ \
+                   str(np.around(self.reshape_rho[ii][0],decimals=3))+'\n')
 
        file.close()
        
