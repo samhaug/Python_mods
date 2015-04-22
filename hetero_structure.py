@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/env python
 
 import numpy as np
 import scipy as sp
@@ -15,6 +15,8 @@ class Mantle_Structure(object):
 ###############################################################################
       self.Background = Background
       self.name = name
+      self.hetero_dict = dict()
+      self.num_dict_entries = 0
 
       if self.Background == 'PREM':
          file = open('/Users/samhaug/Python_mods/VELOCITY_REFERENCE/PREM_1s.csv')
@@ -76,18 +78,23 @@ class Mantle_Structure(object):
        rmax, thmin, thmax. abs is a boolean that determins if it is a relative 
        or absolute change in velocity. if relative, enter the percent value.
        '''
-
+        
        irmin = (np.abs(self.radius - rmin)).argmin()    
        irmax = (np.abs(self.radius - rmax)).argmin()    
        ithmin = (np.abs(self.theta - thmin)).argmin()    
        ithmax = (np.abs(self.theta - thmax)).argmin()    
-       print irmin, irmax, ithmin, ithmax
+       coord_list = [irmin, irmax, ithmin, ithmax, vp_new, vs_new]
 
-       self.vs_2D[irmin:irmax,ithmin:ithmax]=float(vs_new)
-       self.vp_2D[irmin:irmax,ithmin:ithmax]=float(vp_new)
+       #Add entry to dicitonary that includes heterogeneity info
+       self.hetero_dict[self.num_dict_entries] = coord_list
+       self.num_dict_entries += 1
+
+       self.vs_2D[min(irmin,irmax):max(irmin,irmax),ithmin:ithmax]=float(vs_new)
+       self.vp_2D[min(irmin,irmax):max(irmin,irmax),ithmin:ithmax]=float(vp_new)
+
            
 ###############################################################################
-   def preview(self,plot):
+   def preview(self,plot='cart'):
 ###############################################################################
        '''
        Make polar plot of the mantle heterogeneity structure as it currently is
