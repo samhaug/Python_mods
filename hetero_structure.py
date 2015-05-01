@@ -99,29 +99,46 @@ class Mantle_Structure(object):
        '''
        Make polar plot of the mantle heterogeneity structure as it currently is
        '''
+       
+       font = {'family' : 'sans-serif',
+               'color' : 'black',
+               'weight' : 'normal',
+               'size' : 16}
 
        if plot == 'cart':
            theta,rad = np.meshgrid(self.theta,self.radius)
-           fig = plt.figure()
+           fig = plt.figure(num=None, figsize=(9, 12), dpi=80, edgecolor='k')
            ax = fig.add_subplot(211)
-           ax.set_ylabel('Radius (km)')
-           ax.set_xlabel('Degrees from pole')
-           ax.set_title('Vs 2D profile')
-           ax.pcolormesh(theta,rad,self.vs_2D)
+           ax.set_ylabel('Radius (km)',fontdict=font)
+           ax.set_title('Vs 2D profile',fontdict=font)
+           pc1= ax.pcolormesh(theta,rad,self.vs_2D)
+           cbar1 = plt.colorbar(pc1)
+           cbar1.set_label('Velocity (km/s)',fontdict=font)
+
            ax2 = fig.add_subplot(212)
-           ax2.set_ylabel('Radius (km)')
-           ax2.set_xlabel('Degrees from pole')
-           ax2.set_title('Vp 2D profile')
-           ax2.pcolormesh(theta,rad,self.vp_2D)
+           ax2.set_ylabel('Radius (km)',fontdict=font)
+           ax2.set_title('Vp 2D profile',fontdict=font)
+           ax2.set_xlabel('Degrees from pole',fontdict=font)
+           pc2 = ax2.pcolormesh(theta,rad,self.vp_2D)
+           cbar2 = plt.colorbar(pc2)
+           cbar2.set_label('Velocity (km/s)',fontdict=font)
            plt.show()
 
        elif plot == 'polar':
-           azimuths = (np.linspace(0,180,num=self.theta.size))
+           #Set up radial and angular grid points 
+           azimuths = np.radians(np.linspace(0,180,num=self.theta.size))
            zeniths = np.linspace(0,6371,num=self.radius.size)
            r, theta = np.meshgrid(zeniths,azimuths)
+
            fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-           ax.contourf(theta,r, np.transpose(np.flipud(self.vp_2D)))
+           fig.text(0.85,0.5,'Vp Structure')
+           CS = ax.contourf(theta,r, np.transpose(np.flipud(self.vp_2D)))
+           ax.set_theta_zero_location("N")
+           ax.set_theta_direction(-1)
+           cbar = plt.colorbar(CS)
            plt.show()
+       else:
+           print 'Only cartesian and polar plots are supported'
 
 ###############################################################################
    def output_1D_sph(self):
