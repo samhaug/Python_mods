@@ -19,7 +19,7 @@ class Mantle_Structure(object):
       self.num_dict_entries = 0
 
       if self.Background == 'PREM':
-         file = open('/Users/samhaug/Python_mods/VELOCITY_REFERENCE/PREM_1s.csv')
+         file = open('/Users/samhaug/Scattering_Profile/VELOCITY_REFERENCE/PREM_1s.csv')
          file = file.read()
          array = file.strip().split('\n')
          array = [ii.split(',') for ii in array]
@@ -43,13 +43,32 @@ class Mantle_Structure(object):
                self.vp_2D[ii,jj] = self.vp_structure[ii]
                self.rho_2D[ii,jj] = self.density[ii]
       else:
-         print 'PREM background is only supported'
+         array = np.loadtxt(self.Background)
+         radius = array[:,0]
+         theta = array[:,1]
+         vp_structure = array[:,2]
+         vs_structure = array[:,3]
+         density = array[:,4]
 
-###############################################################################
-   def array_interp(self,interp_radius,interp_theta):      
+         self.radius = np.unique(radius)
+         self.theta = np.unique(theta)
+         self.vp_2D = np.empty((len(self.radius),len(self.theta)))
+         self.vs_2D = np.empty((len(self.radius),len(self.theta)))
+         self.rho_2D= np.empty((len(self.radius),len(self.theta)))
+
+         for ii in range(0,len(array)):
+             r = np.argmin(np.abs(self.radius-array[ii,0]))
+             th = np.argmin(np.abs(self.theta-array[ii,1]))
+             self.vp_2D[r,th] = array[ii,2]
+             self.vs_2D[r,th] = array[ii,3]
+             self.rho_2D[r,th] = array[ii,4]
+
+##########kk#####################################################################
+   def array_interp1D(self,interp_radius,interp_theta):      
 ###############################################################################
        '''
-       Interpolates density, vp, vs onto different radial domain.
+       Interpolates density, vp, vs onto different radial domain. This is for
+       1D reference values only.
        '''
        interp_vp = interpolate.interp1d(self.radius,self.vp_structure)
        interp_vs = interpolate.interp1d(self.radius,self.vs_structure)
@@ -70,8 +89,23 @@ class Mantle_Structure(object):
              self.vp_2D[ii,jj] = self.vp_structure[ii]
              self.rho_2D[ii,jj] = self.density[ii]
 
+##########kk#####################################################################
+   def array_interp2D(self,interp_radius,interp_theta):      
 ###############################################################################
-   def add_hetero(self,rmin,rmax,thmin,thmax,vp_new,vs_new,abs=True):
+       '''
+       Interpolates density, vp, vs onto different radial domain. This is for
+       2D models.
+       '''
+       f_rho = sp.interpolate.interp2d(self.theta,self.radius,self.rho_2D,kind='cubic')
+       f_vp = sp.interpolate.interp2d(self.theta,self.radius,self.vp_2D,kind='cubic')
+       f_vs = sp.interpolate.interp2d(self.theta,self.radius,self.vs_2D,kind='cubic')
+       self.rho_2D = f_rho(interp_theta, interp_radius)
+       self.vp_2D = f_vp(interp_theta, interp_radius)
+       self.vs_2D = f_vs(interp_theta, interp_radius)
+       self.radius = interp_radius
+       self.theta = interp_theta
+###############################################################################
+   def add_hetero_region(self,rmin,rmax,thmin,thmax,vp_new,vs_new,rho_new):
 ###############################################################################
        '''
        Add vp_new and vs_new heterogeneity within a region bounded by rmin, 
@@ -91,7 +125,23 @@ class Mantle_Structure(object):
 
        self.vs_2D[min(irmin,irmax):max(irmin,irmax),ithmin:ithmax]=float(vs_new)
        self.vp_2D[min(irmin,irmax):max(irmin,irmax),ithmin:ithmax]=float(vp_new)
+       self.rho_2D[min(irmin,irmax):max(irmin,irmax),ithmin:ithmax]=float(rho_new)
 
+
+###############################################################################
+   def add_hetero_point(self,radius,theta,vp_new,vs_new,rho_new,width):
+###############################################################################
+       '''
+       Add square heterogeneity with specified vp, vs, and width at radius and
+       angle clockwise from north. this function specifies the most inner, northward
+       point of the square.
+       '''
+
+       rmin = radius
+       rmax = rmin+width
+       thmin = theta
+       thmax = thmin + (float(width)/float(rmin))*180./np.pi
+       self.add_hetero_region(rmin,rmax,thmin,thmax,vp_new,vs_new,rho_new)
            
 ###############################################################################
    def preview(self,plot='cart'):
